@@ -95,7 +95,7 @@ traffic_generator.py    # Production traffic & feature skew simulator
 
 ---
 
-## 🛠️ Setup and Running
+## 🛠️ Setup and Running Locally
 
 1.  **Initialize DVC and Track Data:**
     ```bash
@@ -113,11 +113,49 @@ traffic_generator.py    # Production traffic & feature skew simulator
     docker compose up -d --build
     ```
 
-4.  **Access the Platform:**
+4.  **Access the Platform Locally:**
     *   **Custom MLOps Dashboard:** [http://localhost:5173](http://localhost:5173) (Premium UI)
     *   **Inference API Gateway:** `http://localhost:8000`
     *   **Grafana Dashboard:** [http://localhost:3000](http://localhost:3000) (admin / admin)
     *   **Prometheus Console:** [http://localhost:9090](http://localhost:9090)
+
+---
+
+## 🌐 Cloud & Multi-Host Deployment (AWS, Vercel, Railway)
+
+The platform is designed to run in a distributed multi-host cloud setup. 
+
+### 1. Backend & Observability Stack (AWS EC2)
+The stateful containers (FastAPI, Redis, SQLite, Prometheus, Grafana, Loki) run on your **AWS EC2** server.
+
+1. **Inbound Port Setup (AWS Console)**:
+   Ensure your Security Group allows inbound TCP traffic on:
+   * **`8000`** (FastAPI backend API)
+   * **`3000`** (Grafana dashboard)
+
+2. **Deploy on AWS**:
+   ```bash
+   ssh -i "path/to/key.pem" ubuntu@<AWS_IP>
+   cd drift-watch
+   git pull origin main
+   sudo docker compose up -d --build
+   ```
+
+### 2. Frontend React Client (Vercel)
+Deploy your frontend static files to **Vercel** to keep it fast, global, and separate from your backend compute.
+
+1. Create a Vercel project and import your repository.
+2. Set the **Root Directory** setting to `frontend/`.
+3. Add the following **Environment Variable**:
+   * **Key**: `VITE_BACKEND_IP`
+   * **Value**: `<Your_AWS_Public_IP>`
+4. Click **Deploy**.
+
+> **Note on Browser Security (Mixed Content Block):**
+> Because Vercel serves the UI over secure HTTPS, modern browsers block insecure HTTP requests to your raw AWS IP. To bypass this for development, click the site settings slider in the URL bar, go to **Site Settings**, scroll to **Insecure Content**, change to **Allow**, and reload. For production, map a domain and add an SSL certificate using Nginx and Certbot.
+
+### 3. Frontend Self-Healing Local Fallback
+If you are running the frontend locally (`localhost`) but configure it to talk to a remote AWS backend, the frontend will automatically check the connection. If the AWS backend connection fails (e.g. port closed or server offline), the UI will automatically fall back to `localhost` to keep your system operational!
 
 ---
 
@@ -140,7 +178,7 @@ models/fraud_detector/
   active_model.txt    # contains: model_v2.joblib
 ```
 
-> **Upgrade note:** After this refactor, delete `data/mlops.db` once to recreate the new schema (`model_catalog`, `model_versions`).
+> **Upgrade note:** Delete `data/mlops.db` once if you need to recreate the new schema catalog.
 
 ---
 
