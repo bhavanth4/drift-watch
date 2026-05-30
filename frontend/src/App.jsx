@@ -138,6 +138,13 @@ function App() {
       } catch (err) {
         console.warn("Connection verification failed:", err)
         setConnectionStatus('disconnected')
+        // Automatically fallback to local if custom host connection fails and user is running on localhost
+        if (backendHost !== 'localhost' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+          console.warn("Self-healing: falling back to localhost backend.")
+          localStorage.removeItem('MLOPS_AWS_IP')
+          setBackendHost('localhost')
+          setTempHost('')
+        }
       }
     }
     checkConnection()
