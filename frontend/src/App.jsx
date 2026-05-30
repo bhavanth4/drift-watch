@@ -97,9 +97,7 @@ function App() {
     const saved = localStorage.getItem('MLOPS_AWS_IP')
     if (saved) return saved.trim()
     if (import.meta.env.VITE_BACKEND_IP) return import.meta.env.VITE_BACKEND_IP.trim()
-    const currentHost = window.location.hostname
-    if (currentHost === 'localhost' || currentHost === '127.0.0.1') return 'localhost'
-    return ''
+    return '13.201.40.185'
   })
 
   const [connectionStatus, setConnectionStatus] = useState('checking')
@@ -138,13 +136,6 @@ function App() {
       } catch (err) {
         console.warn("Connection verification failed:", err)
         setConnectionStatus('disconnected')
-        // Automatically fallback to local if custom host connection fails and user is running on localhost
-        if (backendHost !== 'localhost' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-          console.warn("Self-healing: falling back to localhost backend.")
-          localStorage.removeItem('MLOPS_AWS_IP')
-          setBackendHost('localhost')
-          setTempHost('')
-        }
       }
     }
     checkConnection()
@@ -627,15 +618,15 @@ function App() {
                   <button
                     type="button"
                     onClick={() => {
-                      setBackendHost('localhost')
-                      setTempHost('')
-                      localStorage.removeItem('MLOPS_AWS_IP')
+                      setBackendHost('13.201.40.185')
+                      setTempHost('13.201.40.185')
+                      localStorage.setItem('MLOPS_AWS_IP', '13.201.40.185')
                       setShowSettings(false)
                     }}
                     className="btn-premium"
                     style={{ padding: '0.3rem', fontSize: '0.65rem', justifyContent: 'center' }}
                   >
-                    Use Local
+                    AWS Default
                   </button>
                   <button
                     type="button"
