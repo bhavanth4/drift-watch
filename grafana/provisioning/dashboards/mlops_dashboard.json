@@ -1,0 +1,219 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Graphics --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "Model Inference Throughput",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(inference_requests_total{model_id=~\"$model_id\"}[1m])) by (model_id, prediction)",
+          "legendFormat": "{{model_id}} ({{prediction}})"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "bars", "fillOpacity": 80 },
+          "unit": "req/s"
+        }
+      }
+    },
+    {
+      "title": "Model Latency (ms)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(inference_latency_ms_bucket{model_id=~\"$model_id\"}[5m])) by (le, model_id))",
+          "legendFormat": "P95 {{model_id}}"
+        },
+        {
+          "expr": "sum(rate(inference_latency_ms_sum{model_id=~\"$model_id\"}[5m])) by (model_id) / sum(rate(inference_latency_ms_count{model_id=~\"$model_id\"}[5m])) by (model_id)",
+          "legendFormat": "Avg {{model_id}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": { "mode": "palette-classic" }
+        }
+      }
+    },
+    {
+      "title": "Data Drift (PSI)",
+      "type": "gauge",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 7, "w": 6, "x": 0, "y": 7 },
+      "targets": [
+        {
+          "expr": "drift_score{metric_type=\"psi\", model_id=~\"$model_id\"}",
+          "legendFormat": "PSI Score"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0, "max": 0.5,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.1 },
+              { "color": "red", "value": 0.2 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "KL Divergence",
+      "type": "gauge",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 7, "w": 6, "x": 6, "y": 7 },
+      "targets": [
+        {
+          "expr": "drift_score{metric_type=\"kl_divergence\", model_id=~\"$model_id\"}",
+          "legendFormat": "KL Div"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0, "max": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null },
+              { "color": "purple", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Confidence Heatmap",
+      "type": "heatmap",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 7 },
+      "targets": [
+        {
+          "expr": "rate(prediction_confidence_bucket{model_id=~\"$model_id\"}[5m])",
+          "format": "heatmap",
+          "legendFormat": "{{le}}"
+        }
+      ]
+    },
+    {
+      "title": "Model Version Distribution",
+      "type": "piechart",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 14 },
+      "targets": [
+        {
+          "expr": "sum(rate(inference_requests_total{model_id=~\"$model_id\"}[5m])) by (model_id, model_version)",
+          "legendFormat": "{{model_id}} ({{model_version}})"
+        }
+      ]
+    },
+    {
+      "title": "Retraining & Self-Healing Events",
+      "type": "logs",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 7, "w": 16, "x": 8, "y": 14 },
+      "targets": [
+        {
+          "expr": "{container_name=\"the-app\"} |~ \"(?i)retrain|register|deploy|swap\" |~ \"$model_id\"",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Structured ML Logs (Loki)",
+      "type": "logs",
+      "datasource": { "type": "loki", "uid": "loki" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 21 },
+      "targets": [
+        {
+          "expr": "{container_name=\"the-app\"} | json | model_id=~\"$model_id\"",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      }
+    },
+    {
+      "title": "Distributed Traces (Tempo)",
+      "type": "traces",
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 29 },
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "search",
+          "refId": "A",
+          "serviceName": "the-app"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["MLOps", "Enterprise", "Production"],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(inference_requests_total, model_id)",
+        "hide": 0,
+        "includeAll": true,
+        "multi": true,
+        "name": "model_id",
+        "options": [],
+        "query": {
+          "query": "label_values(inference_requests_total, model_id)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-30m", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Enterprise MLOps Observability & Model Monitoring Dashboard",
+  "uid": "enterprise-mlops-dashboard",
+  "version": 3
+}

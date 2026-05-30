@@ -1,0 +1,28 @@
+{
+    "model_id": "fraud_detector",
+    "model_name": "Credit Card Fraud Detector",
+    "framework": "scikit-learn",
+    "task_type": "classification",
+    "features_schema": [
+        "amount",
+        "distance",
+        "is_international"
+    ],
+    "model_parameters": {
+        "coefficients": [
+            [
+                0.110851538814237,
+                0.020160915309867314,
+                0.0008386676270227435
+            ]
+        ],
+        "intercept": [
+            -10.079704344093061
+        ],
+        "target_classes": [
+            0,
+            1
+        ],
+        "serialized_size_bytes": 879
+    }
+}

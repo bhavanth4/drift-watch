@@ -1,0 +1,25 @@
+{
+    "model_id": "house_price_predictor",
+    "model_name": "House Price Predictor",
+    "version": "v13",
+    "framework": "scikit-learn",
+    "task_type": "regression",
+    "features_schema": [
+        "sqft",
+        "bedrooms",
+        "bathrooms",
+        "age"
+    ],
+    "created_at": "2026-05-27T11:21:46.083873",
+    "deployment_status": "ACTIVE",
+    "model_parameters": {
+        "coefficients": [
+            162.48579868213082,
+            -37315.38286752984,
+            71617.81413315181,
+            -1547.3755964553334
+        ],
+        "intercept": 79180.86798452353,
+        "serialized_size_bytes": 633
+    }
+}

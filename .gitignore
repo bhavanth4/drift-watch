@@ -1,0 +1,32 @@
+# Virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Pytest & coverage
+.pytest_cache/
+.coverage
+htmlcov/
+pytest_result.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Project telemetry & temporary data
+mlruns/
+logs/*.log
+temp_*.joblib
+temp_*.pkl
+C:\Users\Bhavanth D\.gemini\antigravity-ide\brain\*
+check_*.py
+scratch/
+check.py
+check_logs.py
+check_details.py

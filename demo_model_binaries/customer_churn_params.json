@@ -1,0 +1,28 @@
+{
+    "model_id": "customer_churn",
+    "model_name": "Customer Churn Predictor",
+    "framework": "scikit-learn",
+    "task_type": "classification",
+    "features_schema": [
+        "tenure",
+        "monthly_charges",
+        "support_calls"
+    ],
+    "model_parameters": {
+        "coefficients": [
+            [
+                -0.09292255385212357,
+                0.22576349580383365,
+                0.014721673084664736
+            ]
+        ],
+        "intercept": [
+            -15.790319265383804
+        ],
+        "target_classes": [
+            0,
+            1
+        ],
+        "serialized_size_bytes": 879
+    }
+}

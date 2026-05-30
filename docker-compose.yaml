@@ -1,0 +1,122 @@
+
+services:
+  prometheus-app:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    container_name: prometheus-observer
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - monitoring
+
+  insight-hub:
+    image: grafana/grafana
+    container_name: insight-hub-container
+    restart: unless-stopped
+    depends_on:
+      - prometheus-app
+      - loki-app
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_APP_TITLE=Insight Hub
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    networks:
+      - monitoring
+
+  loki-app:
+    image: grafana/loki:latest
+    container_name: loki-observer
+    restart: unless-stopped
+    ports:
+      - 3100:3100
+    volumes:
+      - ./loki/config.yml:/etc/loki/config.yaml
+    networks:
+      - monitoring
+
+  promtail-app:
+    image: grafana/promtail:latest
+    container_name: promtail-observer
+    restart: unless-stopped
+    volumes:
+      - ./promtail/config.yml:/etc/promtail/config.yaml
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: ["-config.file=/etc/promtail/config.yaml"]
+    depends_on:
+      - loki-app
+    networks:
+      - monitoring
+
+  redis-app:
+    image: redis:alpine
+    container_name: redis-cache
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - monitoring
+
+  the-app:
+    build: .
+    container_name: the-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./logs:/app/logs
+    networks:
+      - monitoring
+
+  frontend:
+    build: ./frontend
+    container_name: nlp-mlops-ui
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - the-app
+    networks:
+      - monitoring
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    restart: unless-stopped
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collection-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    networks:
+      - monitoring
+    depends_on:
+      - tempo
+
+  tempo:
+    image: grafana/tempo:2.4.1
+    container_name: tempo
+    restart: unless-stopped
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./tempo/tempo.yaml:/etc/tempo.yaml
+    ports:
+      - "3200:3200"
+      - "4317"
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    external: true
